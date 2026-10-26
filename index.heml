@@ -36,8 +36,41 @@
             }
         }
         
-        // 全域聲明 submitted 變數，防止 iframe onload 時找不到變數引發 ReferenceError
+        // 預先於 head 中宣告變數與函數，防止 iframe 載入時發生 ReferenceError
         var submitted = false;
+
+        function handleSubmit() {
+            submitted = true;
+            const btn = document.getElementById('submit-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = '處理中...';
+            }
+        }
+
+        function handleIframeLoad() {
+            if (submitted) {
+                showSuccessMessage();
+                const form = document.getElementById('rsvp-form');
+                if (form) form.reset();
+                const btn = document.getElementById('submit-btn');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '確認送出';
+                }
+                submitted = false;
+            }
+        }
+
+        function showSuccessMessage() {
+            const modal = document.getElementById('success-modal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeSuccessMessage() {
+            const modal = document.getElementById('success-modal');
+            if (modal) modal.classList.add('hidden');
+        }
     </script>
     <style>
         body {
@@ -367,12 +400,13 @@
         </div>
 
         <!-- 隱藏式 Iframe，實現頁面無刷新表單提交 -->
-        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){showSuccessMessage();}"></iframe>
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="handleIframeLoad()"></iframe>
 
-        <form action="https://docs.google.com/forms/d/e/1FAIpQLScoP_xALw1u19GMhsGt4DunWpiwUAxVDOaMQcNFpxpXpProQA/formResponse" 
+        <form id="rsvp-form" 
+              action="https://docs.google.com/forms/d/e/1FAIpQLScoP_xALw1u19GMhsGt4DunWpiwUAxVDOaMQcNFpxpXpProQA/formResponse" 
               method="POST" 
               target="hidden_iframe" 
-              onsubmit="submitted=true;"
+              onsubmit="handleSubmit()"
               class="soft-glow-card p-6 sm:p-10 rounded-3xl border border-white/80 space-y-6">
 
             <!-- 1. 姓名 NAME -->
@@ -461,7 +495,7 @@
             </div>
 
             <!-- 送出按鈕 -->
-            <button type="submit" 
+            <button id="submit-btn" type="submit" 
                     class="w-full py-4 rounded-xl bg-morandi-warm hover:bg-morandi-accent text-white font-medium tracking-widest transition duration-300 shadow-md hover:shadow-lg">
                 確認送出
             </button>
@@ -489,15 +523,6 @@
 
     <!-- JavaScript 腳本 -->
     <script>
-        // 1. Google 表單提交狀態控管
-        function showSuccessMessage() {
-            document.getElementById('success-modal').classList.remove('hidden');
-        }
-
-        function closeSuccessMessage() {
-            document.getElementById('success-modal').classList.add('hidden');
-        }
-
         // 2. 手機版導航選單切換
         const mobileBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
